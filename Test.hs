@@ -27,7 +27,7 @@ module Test where
     where
       loadFile file = lift (doesFileExist file)
                   >>= \case True  -> lift (readFile file)
-                            False -> throwError "file not found"
+                            False -> throwError ("'" ++ cfgFileName ++ "' not found")
 
       interact binds port = getLine
                         >>= either print (void . send port)
