@@ -61,7 +61,7 @@ module Parser where
                <$> sepBy1 atom spaces
     where
       atom = try bind
-          <|> singleton <$> hexNumber
+          <|> (singleton <$> hexNumber)
 
       bind = ident
          >>= maybe parserZero return . (`lookup` binds)
