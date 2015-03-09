@@ -60,10 +60,7 @@ module Parser where
   cmdLine binds = concat
                <$> sepBy1 atom spaces
     where
-      atom = try bind
+      atom = try (ident >>= maybe parserZero return . (`lookup` binds))
           <|> (singleton <$> hexNumber)
-
-      bind = ident
-         >>= maybe parserZero return . (`lookup` binds)
 
   parseCmdLine = parse . cmdLine
