@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Test where
+module Main where
 
   import Prelude hiding (interact)
 
@@ -19,7 +19,8 @@ module Test where
 
   cfgFileName = "engulidor.cfg"
 
-  main = loadFile cfgFileName
+  main = (\ result -> runExceptT result >>= either putStrLn id)
+       $ loadFile cfgFileName
      >>= ExceptT . return . left show . parseCfg cfgFileName
      >>= lift . \ config -> openSerial (portName config) defaultSerialSettings
                                                           { commSpeed = CS2400 }
@@ -27,7 +28,7 @@ module Test where
     where
       loadFile file = lift (doesFileExist file)
                   >>= \case True  -> lift (readFile file)
-                            False -> throwError ("'" ++ cfgFileName ++ "' not found")
+                            False -> throwError (cfgFileName ++ " not found!")
 
       interact binds port = getLine
                         >>= either print (void . send port)
