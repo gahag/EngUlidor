@@ -2,37 +2,38 @@ module Parser where
 
   import Prelude hiding (concat)
 
-  import Control.Applicative  ((<$>), (<*>), (<*))
+  import Control.Applicative  ((<$>), (<*>), (<*), (*>))
   import Data.ByteString      (concat, pack, singleton)
   import Data.Char            (digitToInt)
 
   import Text.Parsec          (Parsec, (<?>), (<|>), endBy, many1, noneOf, parse
                                , parserZero, sepBy1, try)
-  import Text.Parsec.Char     (char, hexDigit, spaces)
+  import Text.Parsec.Char     (char, endOfLine, hexDigit, oneOf)
   import Text.Parsec.Language (emptyDef)
   import qualified Text.Parsec.Token as Token (identLetter, identStart
                                                , identifier, makeTokenParser
-                                               , symbol)
+                                               , symbol, whiteSpace)
 
   import Config (Cfg(Cfg))
 
 
   cfgDef = emptyDef {
-      Token.identStart  = noneOf " ="
-    , Token.identLetter = noneOf " ="
+      Token.identStart  = noneOf " =\n\r"
+    , Token.identLetter = noneOf " =\n\r"
   }
 
   lexer = Token.makeTokenParser cfgDef
 
-  ident  = Token.identifier lexer
-  symbol = Token.symbol     lexer
+  ident      = Token.identifier lexer
+  symbol     = Token.symbol     lexer
+  whiteSpace = Token.whiteSpace lexer
 
 
   hexNumber = foldl (\ x -> (16 * x +) . fromIntegral . digitToInt) 0
            <$> many1 hexDigit
            <?> "hexadecimal number"
 
-  hexNumbers = sepBy1 hexNumber spaces
+  hexNumbers = sepBy1 hexNumber (many1 $ oneOf " \t")
             <?> "hexadecimal numbers"
 
 
@@ -42,11 +43,11 @@ module Parser where
          <*> (pack <$> hexNumbers)
          <?> "binding"
 
-  bindings = endBy binding (char '\n')
+  bindings = endBy (whiteSpace *> binding) endOfLine
           <?> "bindings"
 
 
-  portName = many1 (noneOf " \n")
+  portName = ident
           <?> "port name"
 
 
@@ -58,7 +59,7 @@ module Parser where
 
 
   cmdLine binds = concat
-               <$> sepBy1 atom spaces
+               <$> sepBy1 atom (many1 $ oneOf " \t")
     where
       atom = try (ident >>= maybe parserZero return . (`lookup` binds))
           <|> (singleton <$> hexNumber)
