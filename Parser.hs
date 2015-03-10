@@ -29,11 +29,14 @@ module Parser where
   whiteSpace = Token.whiteSpace lexer
 
 
+  blankSpace = many1 (oneOf " \t\r\f\v\xa0")
+
+
   hexNumber = foldl (\ x -> (16 * x +) . fromIntegral . digitToInt) 0
            <$> many1 hexDigit
            <?> "hexadecimal number"
 
-  hexNumbers = sepBy1 hexNumber (many1 $ oneOf " \t")
+  hexNumbers = sepBy1 hexNumber blankSpace
             <?> "hexadecimal numbers"
 
 
@@ -59,7 +62,7 @@ module Parser where
 
 
   cmdLine binds = concat
-               <$> sepBy1 atom (many1 $ oneOf " \t")
+               <$> sepBy1 atom blankSpace
     where
       atom = try (ident >>= maybe parserZero return . (`lookup` binds))
           <|> (singleton <$> hexNumber)
