@@ -23,36 +23,45 @@ module Main where
   cfgFileName  = "engulidor.cfg"
   dataFileName = "engulidor.dat"
 
+  serialPortSettings = defaultSerialSettings { commSpeed = CS2400 }
+
   packetSize = 27
 
 
   main = (\ result -> runExceptT result >>= either putStrLn return)
        $ loadFile cfgFileName
      >>= ExceptT . return . left show . parseCfg cfgFileName
-     >>= lift . \ config -> openSerial (portName config) defaultSerialSettings
-                                                          { commSpeed = CS2400 }
-                       >>= interactCLI (bindings config)
+     >>= lift . interactCLI
+
+
+  loadFile file = lift (doesFileExist file)
+              >>= \case True  -> lift (readFile file)
+                        False -> throwError (cfgFileName ++ " not found!")
+
+  interactCLI config =
+    do port     <- openSerial (portName config) serialPortSettings
+       dataFile <- openFile dataFileName WriteMode
+       listener <- forkIO (listen port dataFile)
+
+       interact port (bindings config) -- ← This will hang until the user
+                                       -- issues the quit command.
+       killThread listener
+       hClose dataFile
+       closeSerial port
+
     where
-      loadFile file = lift (doesFileExist file)
-                  >>= \case True  -> lift (readFile file)
-                            False -> throwError (cfgFileName ++ " not found!")
+      listen port dataFile = recv port packetSize
+                         >>= hPut dataFile
+                          >> listen port dataFile
+                  
 
-      interactCLI binds port =
-        do dataFile <- openFile dataFileName WriteMode
-           listener <- forkIO (listen dataFile)
-           interact -- This will hang until the user issues the quit command.
-           killThread listener
-           hClose dataFile
-        where
-          listen dataFile = recv port packetSize
-                        >>= hPut dataFile
-                         >> listen dataFile
-                      
-
-          interact = getLine
-                 >>= \ line -> when (line /= ":q") $
+      interact port binds = do line <- getLine
+                               when (isQuitCmd line) $
                                 either
-                                  print
+                                  print -- Print error.
                                   (void . send port)
-                                  (parseCmdLine binds "<interactive>" line)
-                                >> interact
+                                  (parseCmdLine binds line)
+                                >> interact port binds
+
+      isQuitCmd (':':cmd) = lex cmd == [("q", "")] 
+      isQuitCmd _ = False
