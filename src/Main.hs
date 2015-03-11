@@ -10,9 +10,9 @@ module Main where
   import Control.Monad.Trans        (lift)
   import Control.Concurrent         (forkIO, killThread)
   import Data.ByteString            (hPut)
-  import System.IO                  (IOMode(WriteMode), hClose, openFile)
+  import System.IO                  (IOMode(WriteMode), withFile)
   import System.Directory           (doesFileExist)
-  import System.Hardware.Serialport (CommSpeed(CS2400)
+  import System.Hardware.Serialport (CommSpeed(CS115200)
                                      , SerialPortSettings(commSpeed)
                                      , closeSerial, defaultSerialSettings
                                      , openSerial, recv, send)
@@ -24,7 +24,7 @@ module Main where
   cfgFileName  = "engulidor.cfg"
   dataFileName = "engulidor.dat"
 
-  serialPortSettings = defaultSerialSettings { commSpeed = CS2400 }
+  serialPortSettings = defaultSerialSettings { commSpeed = CS115200 }
 
   packetSize = 27
 
@@ -41,19 +41,19 @@ module Main where
 
   interactCLI config =
     do port     <- openSerial (portName config) serialPortSettings
-       dataFile <- openFile dataFileName WriteMode
-       listener <- forkIO (listen port dataFile)
+       listener <- forkIO (listen port)
 
        interact port (bindings config) -- ← This will hang until the user
                                        -- issues the quit command.
        killThread listener
-       hClose dataFile
        closeSerial port
 
     where
-      listen port dataFile = recv port packetSize
+      listen port = withFile dataFileName WriteMode listen'
+        where
+          listen' dataFile = recv port packetSize
                          >>= hPut dataFile
-                          >> listen port dataFile
+                          >> listen' dataFile
                   
 
       interact port binds = do line <- getLine
