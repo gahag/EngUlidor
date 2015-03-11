@@ -4,19 +4,20 @@ module Main where
 
   import Prelude hiding (interact)
 
-  import Control.Arrow
-  import Control.Monad
-  import Control.Monad.Except
-  import Control.Monad.Trans  (lift)
-  import Control.Concurrent
-  import Data.ByteString      (hPut)
-  import System.IO
-  import System.Directory
-  import System.Hardware.Serialport
+  import Control.Arrow              (left)
+  import Control.Monad              (unless, void)
+  import Control.Monad.Except       (ExceptT(..), runExceptT, throwError)
+  import Control.Monad.Trans        (lift)
+  import Control.Concurrent         (forkIO, killThread)
+  import Data.ByteString            (hPut)
+  import System.IO                  (IOMode(WriteMode), hClose, openFile)
+  import System.Directory           (doesFileExist)
+  import System.Hardware.Serialport (CommSpeed(CS2400)
+                                     , SerialPortSettings(commSpeed)
+                                     , closeSerial, defaultSerialSettings
+                                     , openSerial, recv, send)
 
-  import Text.Parsec
-
-  import Config
+  import Config (Cfg(bindings, portName))
   import Parser (parseCfg, parseCmdLine)
 
 
