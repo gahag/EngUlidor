@@ -56,7 +56,7 @@ module Main where
                   
 
       interact port binds = do line <- getLine
-                               when (isQuitCmd line) $
+                               unless (isQuitCmd line) $
                                 either
                                   print -- Print error.
                                   (void . send port)
