@@ -25,7 +25,7 @@ module Main where
   import Control.Monad.Trans        (lift)
   import Control.Concurrent         (forkIO, killThread)
   import Data.ByteString            (hPut)
-  import System.IO                  (BufferMode(NoBuffering), IOMode(WriteMode)
+  import System.IO                  (BufferMode(BlockBuffering), IOMode(WriteMode)
                                      , hSetBuffering, withBinaryFile)
   import System.Directory           (doesFileExist)
   import System.Hardware.Serialport (CommSpeed(CS115200)
@@ -66,7 +66,7 @@ module Main where
 
     where
       listen port = withBinaryFile dataFileName WriteMode
-                    $ \ file -> hSetBuffering file NoBuffering
+                    $ \ file -> hSetBuffering file (BlockBuffering $ Just packetSize)
                             >> listen' file
         where
           listen' dataFile = recv port packetSize

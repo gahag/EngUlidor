@@ -32,5 +32,6 @@ executable Engulidor
                        Config
   other-extensions:    LambdaCase
   build-depends:       base >=4.7 && <4.8, bytestring >=0.10 && <0.11, mtl >=2.2 && <2.3, directory >=1.2 && <1.3, serialport >=0.4 && <0.5, parsec >=3.1 && <3.2
+  ghc-options:         -O2
   hs-source-dirs:      src
   default-language:    Haskell2010
