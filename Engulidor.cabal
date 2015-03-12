@@ -1,0 +1,36 @@
+-- This file is part of Engulidor.
+-- 
+-- Engulidor is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+-- 
+-- Engulidor is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+-- 
+-- You should have received a copy of the GNU General Public License
+-- along with Engulidor.  If not, see <http://www.gnu.org/licenses/>.
+
+name:                Engulidor
+version:             0.0.1.0
+synopsis:            Engulidor is a utility to test communication with serial interfaces.
+homepage:            https://github.com/gahag/Engulidor
+license:             GPL-3
+license-file:        LICENSE
+author:              gahag
+maintainer:          gabriel.s.b@live.com
+copyright:           (C) 2015 gahag
+category:            Testing
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable Engulidor
+  main-is:             Main.hs
+  other-modules:       Parser
+                       Config
+  other-extensions:    LambdaCase
+  build-depends:       base >=4.7 && <4.8, bytestring >=0.10 && <0.11, mtl >=2.2 && <2.3, directory >=1.2 && <1.3, serialport >=0.4 && <0.5, parsec >=3.1 && <3.2
+  hs-source-dirs:      src
+  default-language:    Haskell2010
