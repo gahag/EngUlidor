@@ -19,8 +19,8 @@ module Main where
 
   import Prelude hiding (interact)
 
+  import Control.Applicative        ((<$>))
   import Control.Arrow              (left)
-  import Control.Monad              (unless, void)
   import Control.Monad.Except       (ExceptT(..), runExceptT, throwError)
   import Control.Monad.Trans        (lift)
   import Control.Concurrent         (forkIO, killThread)
@@ -32,8 +32,8 @@ module Main where
                                      , closeSerial, defaultSerialSettings
                                      , openSerial, recv, send)
 
-  import Config (Cfg(bindings, portName))
-  import Parser (parseCfg, parseCmdLine)
+  import Data (Cfg(..), Cmd(..))
+  import Parser (parseCfg, parseCmd, parseDataList)
 
 
   cfgFileName  = "engulidor.cfg"
@@ -43,6 +43,13 @@ module Main where
 
   packetSize = 27
 
+
+  help = unlines [ "Engulidor - made by gahag."
+                 , "Type hex data, bind or command."
+                 , "All commands must be prefixed with a colon, one at a line."
+                 , "The available commands are:"
+                 , "q -> exit"
+                 , "h -> show this text." ]
 
   main = (\ result -> runExceptT result >>= either putStrLn return)
        $ loadFile cfgFileName
@@ -58,6 +65,7 @@ module Main where
     do port     <- openSerial (portName config) serialPortSettings
        listener <- forkIO (listen port)
 
+       putStrLn help
        interact port (bindings config) -- ← This will hang until the user
                                        -- issues the quit command.
        killThread listener
@@ -71,13 +79,12 @@ module Main where
                           >> listen' dataFile
                   
 
-      interact port binds = do line <- getLine
-                               unless (isQuitCmd line) $
-                                either
-                                  print -- Print error.
-                                  (void . send port)
-                                  (parseCmdLine binds line)
-                                >> interact port binds
+      interact port binds = let reinteract = (>> interact port binds) in
+            getLine
+        >>= either print id
+          . \case (':': cmd) -> (\case Quit -> return ()
+                                       Help -> reinteract $ putStrLn help)
+                            <$> parseCmd cmd
 
-      isQuitCmd (':':cmd) = lex cmd == [("q", "")] 
-      isQuitCmd _ = False
+                  line -> reinteract . send port
+                      <$> parseDataList binds line

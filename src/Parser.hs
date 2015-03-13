@@ -13,23 +13,25 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Engulidor.  If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 module Parser where
 
   import Prelude hiding (concat)
 
-  import Control.Applicative  ((<$>), (<*>), (<*), (*>))
+  import Control.Applicative  ((<$>), (<$), (<*>), (<*), (*>))
   import Data.ByteString      (concat, pack, singleton)
   import Data.Char            (digitToInt)
 
   import Text.Parsec          ((<?>), (<|>), endBy, many1, noneOf, parse
                                , parserZero, sepBy1, try)
-  import Text.Parsec.Char     (endOfLine, hexDigit, oneOf)
+  import Text.Parsec.Char     (char, endOfLine, hexDigit, oneOf)
   import Text.Parsec.Language (emptyDef)
   import qualified Text.Parsec.Token as Token (identLetter, identStart
                                                , identifier, makeTokenParser
                                                , symbol, whiteSpace)
 
-  import Config (Cfg(Cfg))
+  import Data (Cfg(Cfg), Cmd(..))
 
 
   cfgDef = emptyDef {
@@ -76,10 +78,16 @@ module Parser where
   parseCfg = parse cfg
 
 
-  cmdLine binds = concat
+  dataList binds = concat
                <$> sepBy1 atom blankSpace
     where
       atom = try (ident >>= maybe parserZero return . (`lookup` binds))
           <|> (singleton <$> hexNumber)
 
-  parseCmdLine binds = parse (cmdLine binds) "<interactive>"
+  parseDataList binds = parse (dataList binds) "<interactive>"
+
+
+  cmd =  Quit <$ char 'q'
+     <|> Help <$ char 'h'
+
+  parseCmd = parse cmd "<interactive>"

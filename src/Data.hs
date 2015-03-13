@@ -13,7 +13,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Engulidor.  If not, see <http://www.gnu.org/licenses/>.
 
-module Config where
+module Data where
 
   import Data.ByteString  (ByteString)
 
@@ -22,3 +22,7 @@ module Config where
 
   data Cfg = Cfg { portName :: String
                  , bindings :: [Binding] }
+
+
+  data Cmd = Help
+           | Quit
