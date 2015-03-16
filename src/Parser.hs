@@ -24,7 +24,7 @@ module Parser where
   import Data.Char            (digitToInt)
 
   import Text.Parsec          ((<?>), (<|>), endBy, eof, many1, noneOf, parse
-                               , sepBy1, try)
+                               , sepBy1, skipMany, try)
   import Text.Parsec.Char     (char, endOfLine, hexDigit, oneOf)
   import Text.Parsec.Language (emptyDef)
   import qualified Text.Parsec.Token as Token (identLetter, identStart
@@ -35,8 +35,8 @@ module Parser where
 
 
   cfgDef = emptyDef {
-      Token.identStart  = noneOf " =\n\r"
-    , Token.identLetter = noneOf " =\n\r"
+      Token.identStart  = noneOf " =\t\r\f\v\xa0\n"
+    , Token.identLetter = noneOf " =\t\r\f\v\xa0\n"
   }
 
   lexer = Token.makeTokenParser cfgDef
@@ -46,7 +46,7 @@ module Parser where
   whiteSpace = Token.whiteSpace lexer
 
 
-  blankSpace = many1 (oneOf " \t\r\f\v\xa0")
+  blankSpace = skipMany (oneOf " \t\r\f\v\xa0")
 
 
   hexNumber = foldl (\ x -> (16 * x +) . fromIntegral . digitToInt) 0
