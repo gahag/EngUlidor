@@ -23,8 +23,8 @@ module Parser where
   import Data.ByteString      (concat, pack, singleton)
   import Data.Char            (digitToInt)
 
-  import Text.Parsec          ((<?>), (<|>), endBy, many1, noneOf, parse
-                               , parserZero, sepBy1, try)
+  import Text.Parsec          ((<?>), (<|>), endBy, eof, many1, noneOf, parse
+                               , sepBy1, try)
   import Text.Parsec.Char     (char, endOfLine, hexDigit, oneOf)
   import Text.Parsec.Language (emptyDef)
   import qualified Text.Parsec.Token as Token (identLetter, identStart
@@ -75,20 +75,21 @@ module Parser where
      <$> portName
      <*> bindings
 
-  parseCfg = parse cfg
+  parseCfg = parse (cfg <* eof)
 
 
   dataList binds = concat
                <$> sepBy1 atom blankSpace
     where
-      atom = try (ident >>= maybe parserZero return . (`lookup` binds))
+      atom = try (ident >>= \ bind -> maybe (fail $ "undeclared binding: " ++ bind)
+                                            return $ lookup bind binds)
           <|> (singleton <$> hexNumber)
 
-  parseDataList binds = parse (dataList binds) "<interactive>"
+  parseDataList binds = parse (dataList binds <* eof) "<interactive>"
 
 
   cmd =  Quit  <$ char 'q'
      <|> Help  <$ char 'h'
      <|> Binds <$ char 'b'
 
-  parseCmd = parse cmd "<interactive>"
+  parseCmd = parse (cmd <* eof) "<interactive>"
