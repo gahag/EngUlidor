@@ -25,7 +25,7 @@ module Main where
   import Control.Monad.Trans        (lift)
   import Control.Concurrent         (forkIO, killThread)
   import Data.ByteString            (hPut)
-  import System.IO                  (IOMode(WriteMode), withBinaryFile)
+  import System.IO                  (IOMode(WriteMode), hFlush, stdout, withBinaryFile)
   import System.Directory           (doesFileExist)
   import System.Hardware.Serialport (CommSpeed(CS115200)
                                      , SerialPortSettings(commSpeed)
@@ -49,7 +49,8 @@ module Main where
                  , "All commands must be prefixed with a colon, one at a line."
                  , "The available commands are:"
                  , "q -> exit"
-                 , "h -> show this text." ]
+                 , "h -> show this text."
+                 , "b -> show the current bindings" ]
 
   main = (\ result -> runExceptT result >>= either putStrLn return)
        $ loadFile cfgFileName
@@ -80,10 +81,11 @@ module Main where
                   
 
       interact port binds = let reinteract = (>> interact port binds) in
-            getLine
-        >>= either print id
-          . \case (':': cmd) -> (\case Quit -> return ()
-                                       Help -> reinteract $ putStrLn help)
+            putStr ">> " >> hFlush stdout >> getLine
+        >>= either (reinteract . print) id
+          . \case (':': cmd) -> (\case Quit  -> return ()
+                                       Help  -> reinteract $ putStrLn help
+                                       Binds -> reinteract $ print binds)
                             <$> parseCmd cmd
 
                   line -> reinteract . send port

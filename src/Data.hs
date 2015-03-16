@@ -13,9 +13,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with Engulidor.  If not, see <http://www.gnu.org/licenses/>.
 
+{-# LANGUAGE FlexibleInstances, OverlappingInstances, ViewPatterns #-}
+
 module Data where
 
-  import Data.ByteString  (ByteString)
+  import Data.ByteString        (ByteString, unpack)
+  import Data.Function          (on)
+  import Data.List              (maximumBy)
+  import qualified Numeric as N (showHex)
 
 
   type Binding = (String, ByteString)
@@ -26,3 +31,12 @@ module Data where
 
   data Cmd = Help
            | Quit
+           | Binds
+
+  instance Show [Binding] where
+    show (unzip -> (binds, map unpack -> vals)) =
+      let max     = length $ maximumBy (compare `on` length) binds
+          binds'  = map (\ s -> s ++ replicate (max - length s) ' ') binds
+          showHex = flip N.showHex []
+      in unlines
+         $ zipWith (\ s -> ((s ++ " = ") ++) . unwords . map showHex) binds' vals

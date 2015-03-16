@@ -87,7 +87,8 @@ module Parser where
   parseDataList binds = parse (dataList binds) "<interactive>"
 
 
-  cmd =  Quit <$ char 'q'
-     <|> Help <$ char 'h'
+  cmd =  Quit  <$ char 'q'
+     <|> Help  <$ char 'h'
+     <|> Binds <$ char 'b'
 
   parseCmd = parse cmd "<interactive>"
