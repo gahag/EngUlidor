@@ -1,13 +1,14 @@
 
-.\Data.hs,235
-  BindingBinding21,719
-  CfgCfg23,756
-  data Cfg = CfgCfg23,756
-  data Cfg = Cfg { portNameportName23,756
-                 , bindingsbindings24,793
-  CmdCmd27,835
-  data Cmd = HelpHelp27,835
-           | QuitQuit28,852
+.\Data.hs,271
+  BindingBinding26,923
+  CfgCfg28,960
+  data Cfg = CfgCfg28,960
+  data Cfg = Cfg { portNameportName28,960
+                 , bindingsbindings29,997
+  CmdCmd32,1039
+  data Cmd = HelpHelp32,1039
+           | QuitQuit33,1056
+           | BindsBinds34,1073
 
 .\Parser.hs,458
   cfgDefcfgDef37,1396
@@ -26,14 +27,14 @@
   dataListdataList81,2205
   parseDataListparseDataList87,2390
   cmdcmd90,2452
-  parseCmdparseCmd93,2502
+  parseCmdparseCmd94,2530
 
-C:\Users\bastos.gabriel\Desktop\Gabriel\Engulidor\src\Main.hs,252
+Main.hs,252
   cfgFileNamecfgFileName39,1520
   dataFileNamedataFileName40,1552
   serialPortSettingsserialPortSettings42,1584
   packetSizepacketSize44,1653
   helphelp47,1670
-  mainmain54,1969
-  loadFileloadFile60,2152
-  interactCLIinteractCLI64,2322
+  mainmain55,2020
+  loadFileloadFile61,2203
+  interactCLIinteractCLI65,2373
