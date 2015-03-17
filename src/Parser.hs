@@ -50,7 +50,7 @@ module Parser where
 
 
   hexNumber = foldl (\ x -> (16 * x +) . fromIntegral . digitToInt) 0
-           <$> many1 hexDigit
+           <$> try (many1 hexDigit)
            <?> "hexadecimal number"
 
   hexNumbers = sepBy1 hexNumber blankSpace
