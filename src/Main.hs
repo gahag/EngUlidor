@@ -27,10 +27,8 @@ module Main where
   import Data.ByteString            (hPut)
   import System.IO                  (IOMode(WriteMode), hFlush, stdout, withBinaryFile)
   import System.Directory           (doesFileExist)
-  import System.Hardware.Serialport (CommSpeed(CS115200)
-                                     , SerialPortSettings(commSpeed)
-                                     , closeSerial, defaultSerialSettings
-                                     , openSerial, recv, send)
+  import System.Hardware.Serialport (closeSerial, defaultSerialSettings, openSerial, recv
+                                     , send)
 
   import Data (Cfg(..), Cmd(..))
   import Parser (parseCfg, parseCmd, parseDataList)
@@ -39,10 +37,7 @@ module Main where
   cfgFileName  = "engulidor.cfg"
   dataFileName = "engulidor.dat"
 
-  serialPortSettings = defaultSerialSettings { commSpeed = CS115200 }
-
   packetSize = 27
-
 
   help = unlines [ "Engulidor - made by gahag."
                  , "Type hex data, bind or command."
@@ -51,6 +46,7 @@ module Main where
                  , "q -> exit"
                  , "h -> show this text."
                  , "b -> show the current bindings" ]
+
 
   main = (\ result -> runExceptT result >>= either putStrLn return)
        $ loadFile cfgFileName
@@ -63,7 +59,7 @@ module Main where
                         False -> throwError (cfgFileName ++ " not found!")
 
   interactCLI config =
-    do port     <- openSerial (portName config) serialPortSettings
+    do port     <- openSerial (portName config) defaultSerialSettings
        listener <- forkIO (listen port)
 
        putStrLn help
